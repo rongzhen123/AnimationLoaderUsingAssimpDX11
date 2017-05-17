@@ -96,7 +96,7 @@ public:
 //	bool TryLongerPath(char* szTemp, aiString* p_szString);
 	void Render(ID3DX11Effect* mFX, ID3D11DeviceContext*& md3dImmediateContext);
 
-	void InitBoneLocation(/*NvGLSLProgram* shader*/);
+///	void InitBoneLocation(/*NvGLSLProgram* shader*/);
 	unsigned int NumBones() const
 	{
 		return m_NumBones;
@@ -144,9 +144,9 @@ public:
 		NUM_VBs
 	};
 
-	struct MeshEntry
+	struct SkinnedMeshEntry
 	{
-		MeshEntry()
+		SkinnedMeshEntry()
 		{
 			NumIndices = 0;
 			MaterialIndex = INVALID_MATERIAL;
@@ -174,7 +174,7 @@ public:
 		ID3D11ShaderResourceView* mDiffuseMapSRV;
 
 	};
-	std::vector<MeshEntry> m_Entries;
+	std::vector<SkinnedMeshEntry> m_Entries;
 	std::vector<Texture*> m_Textures;
 
 	std::map<std::string, unsigned int> m_BoneMapping; // maps a bone name to its index

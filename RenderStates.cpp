@@ -20,7 +20,7 @@ void RenderStates::InitAll(ID3D11Device* device)
 	D3D11_RASTERIZER_DESC wireframeDesc;
 	ZeroMemory(&wireframeDesc, sizeof(D3D11_RASTERIZER_DESC));
 	wireframeDesc.FillMode = D3D11_FILL_SOLID;
-	wireframeDesc.CullMode = D3D11_CULL_BACK;
+	wireframeDesc.CullMode = D3D11_CULL_FRONT;
 	wireframeDesc.FrontCounterClockwise = false;
 	wireframeDesc.DepthClipEnable = true;
 

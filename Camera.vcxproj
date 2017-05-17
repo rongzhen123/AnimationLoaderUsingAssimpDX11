@@ -93,6 +93,7 @@
     </CustomBuild>
     <None Include="FX\color.fx" />
     <None Include="FX\LightHelper.fx" />
+    <None Include="FX\staticMesh.fx" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\Camera.cpp" />
@@ -106,6 +107,7 @@
     <ClCompile Include="CameraDemo.cpp" />
     <ClCompile Include="Effects.cpp" />
     <ClCompile Include="math_3d.cpp" />
+    <ClCompile Include="mesh.cpp" />
     <ClCompile Include="RenderStates.cpp" />
     <ClCompile Include="skinnedmesh.cpp" />
     <ClCompile Include="Vertex.cpp" />
@@ -121,6 +123,7 @@
     <ClInclude Include="..\..\Common\MathHelper.h" />
     <ClInclude Include="..\..\Common\Waves.h" />
     <ClInclude Include="Effects.h" />
+    <ClInclude Include="mesh.h" />
     <ClInclude Include="ogldev_math_3d.h" />
     <ClInclude Include="RenderStates.h" />
     <ClInclude Include="skinnedmesh.h" />

@@ -58,6 +58,9 @@ VertexOut VS(VertexIn vin)
 	BoneTransform += gBoneTransforms[vin.BoneIndices[1]] * vin.Weights[1];
 	BoneTransform += gBoneTransforms[vin.BoneIndices[2]] * vin.Weights[2];
 	BoneTransform += gBoneTransforms[vin.BoneIndices[3]] * vin.Weights[3];
+	//float posy = vin.PosL.y;
+	//vin.PosL.y = vin.PosL.z;
+	//vin.PosL.z = - vin.PosL.z;
 	float4 pos = mul(BoneTransform , float4(vin.PosL,1.0));
 	//float3 posL = pos.xyz;
 	/*for (int i = 0; i < 4; ++i)
