@@ -1,6 +1,8 @@
 #include "skinnedmesh.h"
 #include "util.h"
 #include "StringComparison.h"
+#include "D3DCompiler.h"
+
 #define POSITION_LOCATION    0
 #define TEX_COORD_LOCATION   1
 #define NORMAL_LOCATION      2
@@ -8,21 +10,15 @@
 #define BONE_WEIGHT_LOCATION 4
 int FindValidPath(aiString* p_szString);
 bool TryLongerPath(char* szTemp, aiString* p_szString);
-unsigned int ppsteps = aiProcess_CalcTangentSpace | // calculate tangents and bitangents if possible
-aiProcess_JoinIdenticalVertices | // join identical vertices/ optimize indexing
-aiProcess_ValidateDataStructure | // perform a full validation of the loader's output
-aiProcess_ImproveCacheLocality | // improve the cache locality of the output vertices
-aiProcess_RemoveRedundantMaterials | // remove redundant materials
-aiProcess_FindDegenerates | // remove degenerated polygons from the import
-aiProcess_FindInvalidData | // detect invalid model data, such as invalid normal vectors
-aiProcess_GenUVCoords | // convert spherical, cylindrical, box and planar mapping to proper UVs
-aiProcess_TransformUVCoords | // preprocess UV transformations (scaling, translation ...)
-aiProcess_FindInstances | // search for instanced meshes and remove them by references to one master
-aiProcess_LimitBoneWeights | // limit bone weights to 4 per vertex
-aiProcess_OptimizeMeshes | // join small meshes, if possible;
-aiProcess_SplitByBoneCount | // split meshes with too many bones. Necessary for our (limited) hardware skinning shader
-0;
 
+const D3D11_INPUT_ELEMENT_DESC PosTexSkinned[4] =
+{
+	{ "POSITION",     0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//{"NORMAL",       0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{ "TEXCOORD",     0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "WEIGHTS",      0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "BONEINDICES",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
 
 void VertexBoneData::AddBoneData(float BoneID, float Weight)
 {
@@ -35,7 +31,6 @@ void VertexBoneData::AddBoneData(float BoneID, float Weight)
 			return;
 		}
 	}
-
 	// should never get here - more bones than we have space for
 	assert(0);
 }
@@ -45,7 +40,6 @@ SkinnedMesh::Texture::Texture(const std::string& FileName)
 //	m_textureTarget = TextureTarget;
 	m_fileName = FileName;
 }
-
 
 bool SkinnedMesh::Texture::Load(ID3D11Device* device, aiScene* pScene, aiMaterial* material)
 {
@@ -67,18 +61,15 @@ bool SkinnedMesh::Texture::Load(ID3D11Device* device, aiScene* pScene, aiMateria
 		}
 		else
 		{
-			HR(D3DX11CreateShaderResourceViewFromFileA(device,
-				szPath.C_Str(), 0, 0, &mDiffuseMapSRV, 0));
+			HR(D3DX11CreateShaderResourceViewFromFileA(device,szPath.C_Str(), 0, 0, &mDiffuseMapSRV, 0));
 		}
 	}
-
 	return true;
 }
 
 void SkinnedMesh::SkinnedMeshEntry::Init(ID3D11Device* device)
 {
 	mVertexStride = sizeof(SkinnedVertex);
-
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
 	vbd.ByteWidth = sizeof(SkinnedVertex) * m_Vertex.size();
@@ -86,14 +77,9 @@ void SkinnedMesh::SkinnedMeshEntry::Init(ID3D11Device* device)
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
-
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &m_Vertex[0];// &indices[0]
-
 	HR(device->CreateBuffer(&vbd, &vinitData, &mVB));
-
-	
-	//ReleaseCOM(mIB);
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
 	ibd.ByteWidth = sizeof(UINT) * m_Indices.size();
@@ -101,26 +87,83 @@ void SkinnedMesh::SkinnedMeshEntry::Init(ID3D11Device* device)
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
-
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = &m_Indices[0];//.data();
-
 	HR(device->CreateBuffer(&ibd, &iinitData, &mIB));
 }
 
 SkinnedMesh::SkinnedMesh()
 {
-
 	m_NumBones = 0;
 	m_pScene = NULL;
 }
-
 
 SkinnedMesh::~SkinnedMesh()
 {
 	Clear();
 }
 
+bool SkinnedMesh::Init(ID3D11Device* d3d11device)
+{
+	device = d3d11device;
+	DWORD shaderFlags = 0;
+#if defined( DEBUG ) || defined( _DEBUG )
+	shaderFlags |= D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+	ID3D10Blob* compiledShader = 0;
+	ID3D10Blob* compilationMsgs = 0;
+	HRESULT hr;
+	hr = D3DX11CompileFromFile(L"FX/color.fx", 0, 0, 0, "fx_5_0", shaderFlags, 0, 0, &compiledShader, &compilationMsgs, 0);
+	// compilationMsgs can store errors or warnings.
+	if (compilationMsgs != 0)
+	{
+		MessageBoxA(0, (char*)compilationMsgs->GetBufferPointer(), 0, 0);
+		ReleaseCOM(compilationMsgs);
+	}
+	// Even if there are no compilationMsgs, check to make sure there were no other errors.
+	if (FAILED(hr))
+	{
+		DXTrace(__FILE__, (DWORD)__LINE__, hr, L"D3DX11CompileFromFile", true);
+		return false;
+	}
+	hr = D3DX11CreateEffectFromMemory(compiledShader->GetBufferPointer(), compiledShader->GetBufferSize(),0, device, &mFX);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+	// Done with compiled shader.
+	ReleaseCOM(compiledShader);
+	mTech = mFX->GetTechniqueByName("ColorTech");
+	mfxWorldViewProj = mFX->GetVariableByName("gWorldViewProj")->AsMatrix();
+	DiffuseMap = mFX->GetVariableByName("gDiffuseMap")->AsShaderResource();
+	BoneTransforms = mFX->GetVariableByName("gBoneTransforms")->AsMatrix();
+	D3DX11_PASS_DESC passDesc;
+	mTech->GetPassByIndex(0)->GetDesc(&passDesc);
+	hr = device->CreateInputLayout(PosTexSkinned, 4, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &mInputLayout);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+	D3D11_RASTERIZER_DESC wireframeDesc;
+	ZeroMemory(&wireframeDesc, sizeof(D3D11_RASTERIZER_DESC));
+	wireframeDesc.FillMode = D3D11_FILL_SOLID;
+	wireframeDesc.CullMode = D3D11_CULL_FRONT;
+	wireframeDesc.FrontCounterClockwise = false;
+	wireframeDesc.DepthClipEnable = true;
+	hr = device->CreateRasterizerState(&wireframeDesc, &WireframeRS);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+	primitive_type = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	return true;
+}
+
+bool SkinnedMesh::Update(float dt, const XMMATRIX& worldViewProj)
+{
+	worldviewproj = worldViewProj;
+	return false;
+}
 
 void SkinnedMesh::Clear()
 {
@@ -128,7 +171,6 @@ void SkinnedMesh::Clear()
 	{
 		SAFE_DELETE(m_Textures[i]);
 	}
-
 	for (int i = 0; i < m_Entries.size(); i++)
 	{
 		ReleaseCOM(m_Entries[i].mIB);
@@ -137,10 +179,7 @@ void SkinnedMesh::Clear()
 		m_Entries[i].m_Indices.clear();
 	}
 }
-
 char g_szFileName[MAX_PATH];
-
-
 bool SkinnedMesh::LoadMesh(const std::string& Filename)
 {
 	strcpy(g_szFileName, Filename.c_str());
@@ -160,7 +199,6 @@ bool SkinnedMesh::LoadMesh(const std::string& Filename)
 		char* b = (char*)aiGetErrorString();
 		printf("Error parsing '%s':'%s'\n", Filename.c_str(), b);
 	}
-
 	return Ret;
 }
 
@@ -168,46 +206,33 @@ bool SkinnedMesh::InitSkinnedMeshFromScene(const aiScene* pScene, const std::str
 {
 	m_Entries.resize(pScene->mNumMeshes);
 	m_Textures.resize(pScene->mNumMaterials);
-
 	// Initialize the meshes in the scene one by one
 	for (int i = 0; i < m_Entries.size(); i++)
 	{
 		const aiMesh* paiMesh = pScene->mMeshes[i];
 		InitSkinnedMesh(i, paiMesh);
 	}
-
 	if (!InitMaterials(pScene, Filename))
 	{
 		return false;
 	}
 	return true;
 }
-
-
 void SkinnedMesh::InitSkinnedMesh(unsigned int MeshIndex,const aiMesh* paiMesh)
 {
 	m_Entries[MeshIndex].MaterialIndex = paiMesh->mMaterialIndex;
-
 	std::vector<VertexBoneData> Bones;
 	const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
-
 	Bones.resize(paiMesh->mNumVertices);
-
 	LoadBones(MeshIndex, paiMesh, Bones);
-
 	for (unsigned int i = 0; i < paiMesh->mNumVertices; i++)
 	{
 		const aiVector3D* pPos = &(paiMesh->mVertices[i]);
 		//const aiVector3D* pNormal = &(paiMesh->mNormals[i]);
 		const aiVector3D* pTexCoord = paiMesh->HasTextureCoords(0) ? &(paiMesh->mTextureCoords[0][i]) : &Zero3D;
-
-		SkinnedVertex v(Vector3f(pPos->x, pPos->y, pPos->z),
-			Vector2f(pTexCoord->x, pTexCoord->y),
-			VertexBoneData(Bones[i]));
-
+		SkinnedVertex v(Vector3f(pPos->x, pPos->y, pPos->z),Vector2f(pTexCoord->x, pTexCoord->y),VertexBoneData(Bones[i]));
 		m_Entries[MeshIndex].m_Vertex.push_back(v);
 	}
-
 	for (unsigned int i = 0; i < paiMesh->mNumFaces; i++)
 	{
 		const aiFace& Face = paiMesh->mFaces[i];
@@ -216,10 +241,8 @@ void SkinnedMesh::InitSkinnedMesh(unsigned int MeshIndex,const aiMesh* paiMesh)
 		m_Entries[MeshIndex].m_Indices.push_back(Face.mIndices[1]);
 		m_Entries[MeshIndex].m_Indices.push_back(Face.mIndices[2]);
 	}
-
 	m_Entries[MeshIndex].Init(device);
 }
-
 void SkinnedMesh::LoadBones(unsigned int MeshIndex, const aiMesh* pMesh, std::vector<VertexBoneData>& Bones)
 {
 	for (unsigned int i = 0; i < pMesh->mNumBones; i++)
@@ -248,29 +271,24 @@ void SkinnedMesh::LoadBones(unsigned int MeshIndex, const aiMesh* pMesh, std::ve
 		}
 	}
 }
-//-------------------------------------------------------------------------------
+
 bool TryLongerPath(char* szTemp, aiString* p_szString)
 {
 	char szTempB[MAX_PATH];
 	strcpy(szTempB, szTemp);
-
 	// go to the beginning of the file name
 	char* szFile = strrchr(szTempB, '\\');
 	if (!szFile)szFile = strrchr(szTempB, '/');
-
 	char* szFile2 = szTemp + (szFile - szTempB) + 1;
 	szFile++;
 	char* szExt = strrchr(szFile, '.');
 	if (!szExt)return false;
 	szExt++;
 	*szFile = 0;
-
 	strcat(szTempB, "*.*");
 	const unsigned int iSize = (const unsigned int)(szExt - 1 - szFile);
-
 	HANDLE          h;
 	WIN32_FIND_DATAA info;
-
 	// build a list of files
 	h = FindFirstFileA(szTempB, &info);
 	if (h != INVALID_HANDLE_VALUE)
@@ -312,7 +330,6 @@ bool TryLongerPath(char* szTemp, aiString* p_szString)
 					if (0 == Assimp::ASSIMP_stricmp(info.cAlternateFileName, p_szString->data))
 					{
 						strcat(szTempB, info.cAlternateFileName);
-
 						// copy the result string back to the aiString
 						const size_t iLen = strlen(szTempB);
 						size_t iLen2 = iLen + 1;
@@ -438,26 +455,20 @@ bool SkinnedMesh::InitMaterials(const aiScene* pScene, const std::string& Filena
 	}
 	//MessageBoxA(NULL, Dir.c_str(), "DIR", MB_OK);
 	bool Ret = true;
-
 	// Initialize the materials
 	for (unsigned int i = 0; i < pScene->mNumMaterials; i++)
 	{
 		const aiMaterial* pMaterial = pScene->mMaterials[i];
-
 		m_Textures[i] = NULL;
-
 		if (aiGetMaterialTextureCount(pMaterial, aiTextureType_DIFFUSE) > 0)
 		{
 			aiString Path;
-
 			if (aiGetMaterialTexture(pMaterial, aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 			{
 				std::string FullPath = Dir + "/" + Path.data;
 				m_Textures[i] = new Texture(FullPath.c_str());
-
 				if (!m_Textures[i]->Load(device, (aiScene*)pScene, (aiMaterial*)pMaterial))
 				{
-
 					MessageBoxA(NULL,"Error loading texture", FullPath.c_str(),MB_OK);
 					//printf("Error loading texture '%s'\n", Filename.c_str());
 					delete m_Textures[i];
@@ -471,34 +482,40 @@ bool SkinnedMesh::InitMaterials(const aiScene* pScene, const std::string& Filena
 			}
 		}
 	}
-
 	return Ret;
 }
-
-
-void SkinnedMesh::Render(ID3DX11Effect* mFX, ID3D11DeviceContext*& md3dImmediateContext)
+void SkinnedMesh::Render(ID3D11DeviceContext*& md3dImmediateContext)
 {
-	for (unsigned int i = 0; i < m_Entries.size(); i++)
+	md3dImmediateContext->IASetPrimitiveTopology(primitive_type);
+	md3dImmediateContext->RSSetState(WireframeRS);
+	//绘制人物动画
+	md3dImmediateContext->IASetInputLayout(mInputLayout);
+	D3DX11_TECHNIQUE_DESC techDesc;
+	BoneTransforms->SetMatrixArray(reinterpret_cast<const float*>(&Transforms[0]), 0, Transforms.size());
+	for (int i = 0; i < m_Entries.size(); i++)
 	{
-		UINT stride = sizeof(SkinnedVertex);
-		UINT offset = 0;
-		md3dImmediateContext->IASetVertexBuffers(0, 1, &m_Entries[i].mVB, &stride, &offset);
-		md3dImmediateContext->IASetIndexBuffer(m_Entries[i].mIB, DXGI_FORMAT_R32_UINT, 0);
-		D3DX11_TECHNIQUE_DESC techDesc;
-		ID3DX11EffectTechnique* mTech;
-		ID3DX11EffectShaderResourceVariable* DiffuseMap;
-		mTech = mFX->GetTechniqueByName("ColorTech");
-		DiffuseMap = mFX->GetVariableByName("gDiffuseMap")->AsShaderResource();
-		ID3D11ShaderResourceView* tex = m_Textures[m_Entries[i].MaterialIndex]->mDiffuseMapSRV;
-		DiffuseMap->SetResource(tex);
 		mTech->GetDesc(&techDesc);
 		for (UINT p = 0; p < techDesc.Passes; ++p)
 		{
+			UINT stride = sizeof(SkinnedVertex);
+			UINT offset = 0;
+			XMMATRIX world = XMMatrixIdentity();
+			XMMATRIX rotation = XMMatrixRotationX(-0);
+			XMMATRIX scale = XMMatrixScaling(0.24, 0.24, 0.24);
+			XMMATRIX translation = XMMatrixTranslation(-180, 12, 100);
+			world = world * rotation * translation * scale;
+			XMMATRIX worldViewProj = world*worldviewproj;
+			mfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+			DiffuseMap = mFX->GetVariableByName("gDiffuseMap")->AsShaderResource();
+			ID3D11ShaderResourceView* tex = m_Textures[m_Entries[i].MaterialIndex]->mDiffuseMapSRV;
+			DiffuseMap->SetResource(tex);
+			md3dImmediateContext->IASetVertexBuffers(0, 1, &m_Entries[i].mVB, &stride, &offset);
+			md3dImmediateContext->IASetIndexBuffer(m_Entries[i].mIB, DXGI_FORMAT_R32_UINT, 0);
 			mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-			// 36 indices for the box.
 			md3dImmediateContext->DrawIndexed(m_Entries[i].m_Indices.size(), 0, 0);
 		}
 	}
+	md3dImmediateContext->RSSetState(0);
 }
 
 unsigned int SkinnedMesh::FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim)
@@ -548,7 +565,6 @@ void SkinnedMesh::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTime,
 		Out = pNodeAnim->mPositionKeys[0].mValue;
 		return;
 	}
-
 	unsigned int PositionIndex = FindPosition(AnimationTime, pNodeAnim);
 	unsigned int NextPositionIndex = (PositionIndex + 1);
 	assert(NextPositionIndex < pNodeAnim->mNumPositionKeys);
@@ -714,8 +730,15 @@ void SkinnedMesh::BoneTransform(float TimeInSeconds, std::vector<Matrix4f>& Tran
 
 	float TicksPerSecond = (float)(m_pScene->mAnimations[0]->mTicksPerSecond != 0 ? m_pScene->mAnimations[0]->mTicksPerSecond : 25.0f);
 	float TimeInTicks = TimeInSeconds * TicksPerSecond;
-	float AnimationTime = fmod(TimeInTicks, (float)m_pScene->mAnimations[0]->mDuration);
-
+	
+	float Animation_start_point = 64.0/4308.0*float(m_pScene->mAnimations[0]->mDuration);
+	float Animation_end_point = 81.0/4308.0*float(m_pScene->mAnimations[0]->mDuration);
+	float Animation_duration = Animation_end_point - Animation_start_point;
+	
+	float AnimationTime = fmod(TimeInTicks, Animation_duration);
+	AnimationTime = AnimationTime + Animation_start_point;
+	//float AnimationTime = fmod(TimeInTicks, /*float(m_pScene->mAnimations[0]->mDuration)*/10);
+	
 	ReadNodeHeirarchy(AnimationTime, m_pScene->mRootNode, Identity);
 	readaniminfo = true;
 	Transforms.resize(m_NumBones);

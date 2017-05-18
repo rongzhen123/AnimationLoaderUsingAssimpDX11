@@ -84,19 +84,13 @@ struct SkinnedVertex
 class SkinnedMesh
 {
 public:
-
 	ID3D11Device* device;
-
 	SkinnedMesh();
-
 	~SkinnedMesh();
-
+	bool Init(ID3D11Device* d3d11device);
+	bool Update(float dt, const XMMATRIX& worldViewProj);
 	bool LoadMesh(const std::string& Filename);
-	//int FindValidPath(aiString* p_szString);
-//	bool TryLongerPath(char* szTemp, aiString* p_szString);
-	void Render(ID3DX11Effect* mFX, ID3D11DeviceContext*& md3dImmediateContext);
-
-///	void InitBoneLocation(/*NvGLSLProgram* shader*/);
+	void Render(ID3D11DeviceContext*& md3dImmediateContext);
 	unsigned int NumBones() const
 	{
 		return m_NumBones;
@@ -108,14 +102,12 @@ public:
 	{
 		Matrix4f BoneOffset;
 		Matrix4f FinalTransformation;
-
 		BoneInfo()
 		{
 			BoneOffset.SetZero();
 			FinalTransformation.SetZero();
 		}
 	};
-
 	void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
 	void CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
 	void CalcInterpolatedPosition(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
@@ -125,15 +117,13 @@ public:
 	const aiNodeAnim* FindNodeAnim(const aiAnimation* pAnimation, const std::string NodeName);
 	void ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const Matrix4f& ParentTransform);
 	bool InitSkinnedMeshFromScene(const aiScene* pScene, const std::string& Filename);
-	void InitSkinnedMesh(unsigned int MeshIndex,
-		const aiMesh* paiMesh);
+	void InitSkinnedMesh(unsigned int MeshIndex,const aiMesh* paiMesh);
 	void LoadBones(unsigned int MeshIndex, const aiMesh* paiMesh, std::vector<VertexBoneData>& Bones);
 	bool InitMaterials(const aiScene* pScene, const std::string& Filename);
 	void Clear();
 
 	//	void InitLocation();
 #define INVALID_MATERIAL 0xFFFFFFFF
-
 	enum VB_TYPES
 	{
 		INDEX_BUFFER,
@@ -143,7 +133,6 @@ public:
 		BONE_VB,
 		NUM_VBs
 	};
-
 	struct SkinnedMeshEntry
 	{
 		SkinnedMeshEntry()
@@ -152,10 +141,8 @@ public:
 			MaterialIndex = INVALID_MATERIAL;
 		}
 		void Init(ID3D11Device* device);
-
 		ID3D11Buffer* mVB;
 		ID3D11Buffer* mIB;
-
 		DXGI_FORMAT mIndexBufferFormat; // Always 16-bit
 		UINT mVertexStride;
 		std::vector<SkinnedVertex> m_Vertex;
@@ -168,11 +155,8 @@ public:
 		Texture() {};
 		Texture( const std::string& FileName);
 		bool Load(ID3D11Device* device, aiScene* pScene, aiMaterial* material);
-
 		std::string m_fileName;
-		//ID3D11Texture2D *pTexture = NULL;
 		ID3D11ShaderResourceView* mDiffuseMapSRV;
-
 	};
 	std::vector<SkinnedMeshEntry> m_Entries;
 	std::vector<Texture*> m_Textures;
@@ -182,6 +166,18 @@ public:
 	std::vector<BoneInfo> m_BoneInfo;
 	Matrix4f m_GlobalInverseTransform;
 	
+	D3D_PRIMITIVE_TOPOLOGY primitive_type;
+	ID3D11RasterizerState* WireframeRS;
+	ID3DX11Effect* mFX;
+	ID3DX11EffectTechnique* mTech;
+	ID3DX11EffectMatrixVariable* mfxWorldViewProj;
+	ID3DX11EffectShaderResourceVariable* DiffuseMap;
+	ID3DX11EffectMatrixVariable* BoneTransforms;
+	ID3D11InputLayout* mInputLayout;
+	
+
+	XMMATRIX worldviewproj;
+
 	const aiScene* m_pScene;
 	Assimp::Importer m_Importer;
 };

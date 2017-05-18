@@ -57,8 +57,10 @@ public:
 
 	~Mesh();
 
+	bool Init(ID3D11Device* d3d11device);
 	bool LoadMesh(const std::string& Filename);
-	void Render(ID3DX11Effect* mFX, ID3D11DeviceContext*& md3dImmediateContext);
+	bool Update(float dt, const XMMATRIX& worldViewProj);
+	void Render(ID3D11DeviceContext*& md3dImmediateContext);
 	bool InitMeshFromScene(const aiScene* pScene, const std::string& Filename);
 	void InitMesh(unsigned int MeshIndex,	const aiMesh* paiMesh);
 	bool InitMaterials(const aiScene* pScene, const std::string& Filename);
@@ -110,6 +112,16 @@ public:
 	std::vector<MeshEntry> m_Entries;
 	std::vector<MeshTexture*> m_Textures;
 
+	D3D_PRIMITIVE_TOPOLOGY primitive_type;
+	ID3D11RasterizerState* WireframeRS;
+	ID3DX11Effect* mStaticMeshFX;
+	ID3DX11EffectTechnique* mStaticMeshTech;
+	ID3DX11EffectMatrixVariable* m_StaticMesh_fxWorldViewProj;
+	ID3DX11EffectShaderResourceVariable* StaticMesh_DiffuseMap;
+	ID3D11InputLayout* mInputLayout_staticmesh;
+	
+
+	XMMATRIX worldviewproj;
 	const aiScene* m_pScene;
 	Assimp::Importer m_Importer;
 };
