@@ -41,6 +41,7 @@ float fmax(float a, float b);
 
 #define MAX_BONES  100
 
+#define INVALID_MATERIAL 0xFFFFFFFF
 //***************************************************************************************
 // d3dUtil.h by Frank Luna (C) 2011 All Rights Reserved.
 //***************************************************************************************

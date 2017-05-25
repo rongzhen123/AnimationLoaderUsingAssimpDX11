@@ -28,9 +28,9 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+using namespace ogldev;
 
-//using namespace std;
-
+class Camera;
 struct VertexBoneData
 {
 	float Weights[NUM_BONES_PER_VEREX];
@@ -51,16 +51,13 @@ struct VertexBoneData
 	{
 		Reset();
 	};
-
 	void Reset()
 	{
 		ZERO_MEM(IDs);
 		ZERO_MEM(Weights);
 	}
-
 	void AddBoneData(float BoneID, float Weight);
 };
-
 struct SkinnedVertex
 {
 	Vector3f m_pos;
@@ -68,9 +65,7 @@ struct SkinnedVertex
 //	nv::vec3f m_pos;
 //	nv::vec2f m_tex;
 	//nv::vec3f m_normal;
-
 	VertexBoneData bonedata;
-
 	SkinnedVertex() { }
 	SkinnedVertex(const Vector3f& pos, const Vector2f& tex /*const nv::vec3f& normal*/,const VertexBoneData& boneinfo)
 	{
@@ -80,7 +75,11 @@ struct SkinnedVertex
 		bonedata = boneinfo;
 	}
 };
-
+struct AnimationFrame
+{
+	float StartIndex;
+	float Framenumber;
+};
 class SkinnedMesh
 {
 public:
@@ -121,8 +120,6 @@ public:
 	void LoadBones(unsigned int MeshIndex, const aiMesh* paiMesh, std::vector<VertexBoneData>& Bones);
 	bool InitMaterials(const aiScene* pScene, const std::string& Filename);
 	void Clear();
-
-	//	void InitLocation();
 #define INVALID_MATERIAL 0xFFFFFFFF
 	enum VB_TYPES
 	{
@@ -158,14 +155,14 @@ public:
 		std::string m_fileName;
 		ID3D11ShaderResourceView* mDiffuseMapSRV;
 	};
+	std::string m_CurrentAction;
 	std::vector<SkinnedMeshEntry> m_Entries;
 	std::vector<Texture*> m_Textures;
-
 	std::map<std::string, unsigned int> m_BoneMapping; // maps a bone name to its index
+	std::map<std::string, AnimationFrame> m_AnimationMaps;//maps a action name to its frame number and count
 	unsigned int m_NumBones;
 	std::vector<BoneInfo> m_BoneInfo;
 	Matrix4f m_GlobalInverseTransform;
-	
 	D3D_PRIMITIVE_TOPOLOGY primitive_type;
 	ID3D11RasterizerState* WireframeRS;
 	ID3DX11Effect* mFX;
@@ -174,14 +171,10 @@ public:
 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
 	ID3DX11EffectMatrixVariable* BoneTransforms;
 	ID3D11InputLayout* mInputLayout;
-	
-
-	XMMATRIX worldviewproj;
-
+	//XMMATRIX worldviewproj;
+	Camera* m_Camera;
 	const aiScene* m_pScene;
 	Assimp::Importer m_Importer;
 };
-
-
 #endif	/* OGLDEV_SKINNED_MESH_H */
 

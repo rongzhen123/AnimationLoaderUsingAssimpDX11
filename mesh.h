@@ -17,6 +17,7 @@
 #include <assimp/LogStream.hpp>
 #include <assimp/DefaultLogger.hpp>
 #include "util.h"
+#include "OgreMath.h"
 #include "ogldev_math_3d.h"
 #include <d3dx11.h>
 #include "d3dx11Effect.h"
@@ -29,8 +30,9 @@
 #include <sstream>
 #include <fstream>
 
-//using namespace std;
+using namespace ogldev;
 
+class Camera;
 struct MeshVertex
 {
 	Vector3f m_pos;
@@ -50,13 +52,9 @@ struct MeshVertex
 class Mesh
 {
 public:
-
 	ID3D11Device* device;
-
 	Mesh();
-
 	~Mesh();
-
 	bool Init(ID3D11Device* d3d11device);
 	bool LoadMesh(const std::string& Filename);
 	bool Update(float dt, const XMMATRIX& worldViewProj);
@@ -65,10 +63,7 @@ public:
 	void InitMesh(unsigned int MeshIndex,	const aiMesh* paiMesh);
 	bool InitMaterials(const aiScene* pScene, const std::string& Filename);
 	void Clear();
-
 	//	void InitLocation();
-#define INVALID_MATERIAL 0xFFFFFFFF
-
 	enum VB_TYPES
 	{
 		INDEX_BUFFER,
@@ -78,7 +73,6 @@ public:
 		BONE_VB,
 		NUM_VBs
 	};
-
 	struct MeshEntry
 	{
 		MeshEntry()
@@ -87,7 +81,6 @@ public:
 			MaterialIndex = INVALID_MATERIAL;
 		}
 		void Init(ID3D11Device* device);
-
 		ID3D11Buffer* mVB;
 		ID3D11Buffer* mIB;
 
@@ -120,8 +113,8 @@ public:
 	ID3DX11EffectShaderResourceVariable* StaticMesh_DiffuseMap;
 	ID3D11InputLayout* mInputLayout_staticmesh;
 	
-
-	XMMATRIX worldviewproj;
+	//XMMATRIX worldviewproj;
+	Camera* m_Camera;
 	const aiScene* m_pScene;
 	Assimp::Importer m_Importer;
 };

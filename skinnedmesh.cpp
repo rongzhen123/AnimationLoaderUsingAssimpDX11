@@ -2,6 +2,7 @@
 #include "util.h"
 #include "StringComparison.h"
 #include "D3DCompiler.h"
+#include "Camera.h"
 
 #define POSITION_LOCATION    0
 #define TEX_COORD_LOCATION   1
@@ -96,6 +97,7 @@ SkinnedMesh::SkinnedMesh()
 {
 	m_NumBones = 0;
 	m_pScene = NULL;
+	
 }
 
 SkinnedMesh::~SkinnedMesh()
@@ -156,12 +158,14 @@ bool SkinnedMesh::Init(ID3D11Device* d3d11device)
 		return false;
 	}
 	primitive_type = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	//worldviewproj = XMMatrixIdentity();
 	return true;
 }
 
 bool SkinnedMesh::Update(float dt, const XMMATRIX& worldViewProj)
 {
-	worldviewproj = worldViewProj;
+	//worldviewproj = worldViewProj;
 	return false;
 }
 
@@ -179,6 +183,7 @@ void SkinnedMesh::Clear()
 		m_Entries[i].m_Indices.clear();
 	}
 }
+
 char g_szFileName[MAX_PATH];
 bool SkinnedMesh::LoadMesh(const std::string& Filename)
 {
@@ -198,6 +203,7 @@ bool SkinnedMesh::LoadMesh(const std::string& Filename)
 	{
 		char* b = (char*)aiGetErrorString();
 		printf("Error parsing '%s':'%s'\n", Filename.c_str(), b);
+		return false;
 	}
 	return Ret;
 }
@@ -271,7 +277,6 @@ void SkinnedMesh::LoadBones(unsigned int MeshIndex, const aiMesh* pMesh, std::ve
 		}
 	}
 }
-
 bool TryLongerPath(char* szTemp, aiString* p_szString)
 {
 	char szTempB[MAX_PATH];
@@ -440,7 +445,6 @@ bool SkinnedMesh::InitMaterials(const aiScene* pScene, const std::string& Filena
 	// Extract the directory part from the file name
 	std::string::size_type SlashIndex = Filename.find_last_of("\\");
 	std::string Dir;
-
 	if (SlashIndex == std::string::npos)
 	{
 		Dir = ".";
@@ -453,7 +457,6 @@ bool SkinnedMesh::InitMaterials(const aiScene* pScene, const std::string& Filena
 	{
 		Dir = Filename.substr(0, SlashIndex);
 	}
-	//MessageBoxA(NULL, Dir.c_str(), "DIR", MB_OK);
 	bool Ret = true;
 	// Initialize the materials
 	for (unsigned int i = 0; i < pScene->mNumMaterials; i++)
@@ -486,8 +489,14 @@ bool SkinnedMesh::InitMaterials(const aiScene* pScene, const std::string& Filena
 }
 void SkinnedMesh::Render(ID3D11DeviceContext*& md3dImmediateContext)
 {
+	//XMMATRIX view = m_Camera->View();
+	//XMMATRIX proj = m_Camera->Proj();
+	XMMATRIX viewProj = m_Camera->ViewProj();
+	//XMMATRIX world = XMMatrixIdentity();
+	//XMMATRIX worldViewProj = world*view*proj;
+
 	md3dImmediateContext->IASetPrimitiveTopology(primitive_type);
-	md3dImmediateContext->RSSetState(WireframeRS);
+	//md3dImmediateContext->RSSetState(WireframeRS);
 	//绘制人物动画
 	md3dImmediateContext->IASetInputLayout(mInputLayout);
 	D3DX11_TECHNIQUE_DESC techDesc;
@@ -504,7 +513,7 @@ void SkinnedMesh::Render(ID3D11DeviceContext*& md3dImmediateContext)
 			XMMATRIX scale = XMMatrixScaling(0.24, 0.24, 0.24);
 			XMMATRIX translation = XMMatrixTranslation(-180, 12, 100);
 			world = world * rotation * translation * scale;
-			XMMATRIX worldViewProj = world*worldviewproj;
+			XMMATRIX worldViewProj = world*viewProj;
 			mfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 			DiffuseMap = mFX->GetVariableByName("gDiffuseMap")->AsShaderResource();
 			ID3D11ShaderResourceView* tex = m_Textures[m_Entries[i].MaterialIndex]->mDiffuseMapSRV;
@@ -517,7 +526,6 @@ void SkinnedMesh::Render(ID3D11DeviceContext*& md3dImmediateContext)
 	}
 	md3dImmediateContext->RSSetState(0);
 }
-
 unsigned int SkinnedMesh::FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
 	for (unsigned int i = 0; i < pNodeAnim->mNumPositionKeys - 1; i++)
@@ -530,7 +538,6 @@ unsigned int SkinnedMesh::FindPosition(float AnimationTime, const aiNodeAnim* pN
 	assert(0);
 	return 0;
 }
-
 unsigned int SkinnedMesh::FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
 	assert(pNodeAnim->mNumRotationKeys > 0);
@@ -557,7 +564,6 @@ unsigned int SkinnedMesh::FindScaling(float AnimationTime, const aiNodeAnim* pNo
 	assert(0);
 	return 0;
 }
-
 void SkinnedMesh::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
 	if (pNodeAnim->mNumPositionKeys == 1)
@@ -576,8 +582,6 @@ void SkinnedMesh::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTime,
 	aiVector3D Delta = End - Start;
 	Out = Start + Factor * Delta;
 }
-
-
 void SkinnedMesh::CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
 	// we need at least two values to interpolate...
@@ -597,7 +601,6 @@ void SkinnedMesh::CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTim
 	aiQuaternion::Interpolate(Out, StartRotationQ, EndRotationQ, Factor);
 	Out = Out.Normalize();
 }
-
 void SkinnedMesh::CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
 {
 	if (pNodeAnim->mNumScalingKeys == 1)
@@ -616,16 +619,13 @@ void SkinnedMesh::CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, 
 	aiVector3D Delta = End - Start;
 	Out = Start + Factor * Delta;
 }
-
 static bool readaniminfo = false;
 void SkinnedMesh::ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const Matrix4f& ParentTransform)
 {
 	std::string NodeName(pNode->mName.data);
 	std::string filename(pNode->mName.data);
 	const aiAnimation* pAnimation = m_pScene->mAnimations[0];
-
 	Matrix4f NodeTransformation(pNode->mTransformation);
-
 	const aiNodeAnim* pNodeAnim = FindNodeAnim(pAnimation, NodeName);
 	filename.append(".txt");
 	if (pNodeAnim)
@@ -634,13 +634,11 @@ void SkinnedMesh::ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, co
 		{
 			//WriteAnimInfo(filename.c_str(), pNodeAnim);
 		}
-
 		// Interpolate scaling and generate scaling transformation matrix
 		aiVector3D Scaling;
 		CalcInterpolatedScaling(Scaling, AnimationTime, pNodeAnim);
 		Matrix4f ScalingM;
 		ScalingM.InitScaleTransform(Scaling.x, Scaling.y, Scaling.z);
-
 		// Interpolate rotation and generate rotation transformation matrix
 		aiQuaternion RotationQ;
 		CalcInterpolatedRotation(RotationQ, AnimationTime, pNodeAnim);
@@ -653,20 +651,17 @@ void SkinnedMesh::ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, co
 		// Combine the above transformations
 		NodeTransformation = TranslationM * RotationM * ScalingM;
 	}
-
 	Matrix4f GlobalTransformation = ParentTransform * NodeTransformation;
 	if (m_BoneMapping.find(NodeName) != m_BoneMapping.end())
 	{
 		unsigned int BoneIndex = m_BoneMapping[NodeName];
 		m_BoneInfo[BoneIndex].FinalTransformation = m_GlobalInverseTransform * GlobalTransformation * m_BoneInfo[BoneIndex].BoneOffset;
 	}
-
 	for (unsigned int i = 0; i < pNode->mNumChildren; i++)
 	{
 		ReadNodeHeirarchy(AnimationTime, pNode->mChildren[i], GlobalTransformation);
 	}
 }
-
 bool SkinnedMesh::WriteAnimInfo(const char * filename, const aiNodeAnim* animinfo)
 {
 	FILE * file;
@@ -677,12 +672,10 @@ bool SkinnedMesh::WriteAnimInfo(const char * filename, const aiNodeAnim* animinf
 		return false;
 	}
 	memset(buf, 0, MAXLEN);
-
 	unsigned int positionkey_num = animinfo->mNumPositionKeys;
 	unsigned int scalingkey_num = animinfo->mNumScalingKeys;
 	unsigned int rotationkey_num = animinfo->mNumRotationKeys;
 	unsigned int saclesize;
-
 	//写入mesh个数
 	sprintf(buf, "positionkey_num=%d,scalingkey_num=%d,rotationkey_num=%d\r\n", positionkey_num, scalingkey_num, rotationkey_num);
 	fwrite(buf, strlen(buf), 1, file);
@@ -699,7 +692,6 @@ bool SkinnedMesh::WriteAnimInfo(const char * filename, const aiNodeAnim* animinf
 		sprintf(buf, "keytime=%f,keyposition.x=%f,keyposition.y=%f,keyposition.z=%f\r\n", keytime, keyposition.x, keyposition.y, keyposition.z);
 		fwrite(buf, strlen(buf), 1, file);
 	}
-
 	for (int i = 0; i < positionkey_num; i++)
 	{
 		memset(buf, 0, MAXLEN);
@@ -708,7 +700,6 @@ bool SkinnedMesh::WriteAnimInfo(const char * filename, const aiNodeAnim* animinf
 		sprintf(buf, "keytime=%f,keyquaternion.w=%f,keyquaternion.x=%f,keyquaternion.y=%f,keyquaternion.z=%f\r\n", keytime, keyquaternion.w, keyposition.x, keyposition.y, keyposition.z);
 		fwrite(buf, strlen(buf), 1, file);
 	}
-
 	for (int i = 0; i < positionkey_num; i++)
 	{
 		memset(buf, 0, MAXLEN);
@@ -717,38 +708,33 @@ bool SkinnedMesh::WriteAnimInfo(const char * filename, const aiNodeAnim* animinf
 		sprintf(buf, "keytime=%f,keyscaling.x=%f,keyscaling.y=%f,keyscaling.z=%f\r\n", keytime, keyscaling.x, keyscaling.y, keyscaling.z);
 		fwrite(buf, strlen(buf), 1, file);
 	}
-
 	//写入顶点数量
 	fclose(file);
 	return false;
 }
-
 void SkinnedMesh::BoneTransform(float TimeInSeconds, std::vector<Matrix4f>& Transforms)
 {
 	Matrix4f Identity;
 	Identity.InitIdentity();
-
 	float TicksPerSecond = (float)(m_pScene->mAnimations[0]->mTicksPerSecond != 0 ? m_pScene->mAnimations[0]->mTicksPerSecond : 25.0f);
 	float TimeInTicks = TimeInSeconds * TicksPerSecond;
-	
-	float Animation_start_point = 64.0/4308.0*float(m_pScene->mAnimations[0]->mDuration);
-	float Animation_end_point = 81.0/4308.0*float(m_pScene->mAnimations[0]->mDuration);
+	float start_frame = m_AnimationMaps[m_CurrentAction].StartIndex;
+	float end_frame = start_frame + m_AnimationMaps[m_CurrentAction].Framenumber;
+
+	float Animation_start_point = start_frame /4308.0*float(m_pScene->mAnimations[0]->mDuration);
+	float Animation_end_point = end_frame /4308.0*float(m_pScene->mAnimations[0]->mDuration);
 	float Animation_duration = Animation_end_point - Animation_start_point;
-	
 	float AnimationTime = fmod(TimeInTicks, Animation_duration);
 	AnimationTime = AnimationTime + Animation_start_point;
 	//float AnimationTime = fmod(TimeInTicks, /*float(m_pScene->mAnimations[0]->mDuration)*/10);
-	
 	ReadNodeHeirarchy(AnimationTime, m_pScene->mRootNode, Identity);
 	readaniminfo = true;
 	Transforms.resize(m_NumBones);
-
 	for (int i = 0; i < m_NumBones; i++)
 	{
 		Transforms[i] =  m_BoneInfo[i].FinalTransformation;
 	}
 }
-
 const aiNodeAnim* SkinnedMesh::FindNodeAnim(const aiAnimation* pAnimation, const std::string NodeName)
 {
 	char title[100];

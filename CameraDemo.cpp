@@ -75,7 +75,7 @@ private:
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 				   PSTR cmdLine, int showCmd)
-{
+ {
 	// Enable run-time memory check for debug builds.
 #if defined(DEBUG) | defined(_DEBUG)
 	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
@@ -111,7 +111,6 @@ bool CameraApp::Init()
 {
 	if(!D3DApp::Init())
 		return false;
-
 	// Must init Effects first since InputLayouts depend on shader signatures.
 	//Effects::InitAll(md3dDevice);
 	//InputLayouts::InitAll(md3dDevice);
@@ -120,52 +119,145 @@ bool CameraApp::Init()
 		L"Textures/floor.dds", 0, 0, &mFloorTexSRV, 0 ));
 	BuildSkullGeometryBuffers();
 	*/
-
 	skinnedmesh = new SkinnedMesh();
 	skinnedmesh->Init(md3dDevice);
 	skinnedmesh->LoadMesh("assert\\mesh\\cloud_all_action.DAE");
 
+	AnimationFrame af;
+
+	af.StartIndex = 0;
+	af.Framenumber = 62;
+	skinnedmesh->m_AnimationMaps["stand"] = af;
+
+	af.StartIndex = 64;
+	af.Framenumber = 81 - 64;
+	skinnedmesh->m_AnimationMaps["run"] = af;
+
+	af.StartIndex = 1820;
+	af.Framenumber = 1861 - 1820;
+	skinnedmesh->m_AnimationMaps["ºá¿³"] = af;
+
+	af.StartIndex = 1862;
+	af.Framenumber = 1906 - 1862;
+	skinnedmesh->m_AnimationMaps["Ìø¿³"] = af;
+
+	af.StartIndex = 2650;
+	af.Framenumber = 1906 - 1862;
+	skinnedmesh->m_AnimationMaps["´óÁ¦¿³µØ"] = af;
+
+	af.StartIndex = 2702;
+	af.Framenumber = 2801 - 2702;
+	skinnedmesh->m_AnimationMaps["´óÕÐ_Ðý×ªµ¶"] = af;
+
+	af.StartIndex = 752;
+	af.Framenumber = 796 - 752;
+	skinnedmesh->m_AnimationMaps["µØ¹ö"] = af;
+
+	af.StartIndex = 1264;
+	af.Framenumber = 1313 - 1264;
+	skinnedmesh->m_AnimationMaps["±»×²»÷"] = af;
+
+	af.StartIndex = 2513;
+	af.Framenumber = 2604 - 2513;
+	skinnedmesh->m_AnimationMaps["Á¬»÷1"] = af;
+
+	af.StartIndex = 2962;
+	af.Framenumber = 3204 - 2962;
+	skinnedmesh->m_AnimationMaps["²åµ¶"] = af;
+
+	skinnedmesh->m_CurrentAction = "stand";
+	skinnedmesh->m_Camera = &mCam;
+
 	background_mesh = new Mesh();
 	background_mesh->Init(md3dDevice);
+	background_mesh->m_Camera = &mCam;
 	background_mesh->LoadMesh("assert\\mesh\\1V1.DAE");
 	return true;
 }
-
 void CameraApp::OnResize()
 {
 	D3DApp::OnResize();
-
 	mCam.SetLens(0.25f*MathHelper::Pi, AspectRatio(), 1.0f, 1000.0f);
 }
-
 void CameraApp::UpdateScene(float dt)
 {
 	// Control the camera.
 	if( GetAsyncKeyState('W') & 0x8000 )
 		mCam.Walk(10.0f*dt);
-
 	if( GetAsyncKeyState('S') & 0x8000 )
 		mCam.Walk(-10.0f*dt);
-
 	if( GetAsyncKeyState('A') & 0x8000 )
 		mCam.Strafe(-10.0f*dt);
-
 	if( GetAsyncKeyState('D') & 0x8000 )
 		mCam.Strafe(10.0f*dt);
 
-	mCam.UpdateViewMatrix();
 
-	XMMATRIX view = mCam.View();
-	XMMATRIX proj = mCam.Proj();
-	XMMATRIX viewProj = mCam.ViewProj();
-	XMMATRIX world = XMMatrixIdentity();
-	XMMATRIX worldViewProj = world*view*proj;
-	skinnedmesh->Update(dt, worldViewProj);
-	background_mesh->Update(dt, worldViewProj);
+	
+	mCam.UpdateViewMatrix();
 	float RunningTime = GetRunningTime();
+	if (GetAsyncKeyState('M') & 0x8000)
+	{
+		skinnedmesh->m_CurrentAction = "run";
+		RunningTime = 0;
+		m_startTime = (double)GetCurrentTimeMillis();
+	}
+	else if (GetAsyncKeyState('Z') & 0x8000)
+	{
+		skinnedmesh->m_CurrentAction = "stand";
+		RunningTime = 0;
+		m_startTime = (double)GetCurrentTimeMillis();
+	}
+	else if (GetAsyncKeyState('X') & 0x8000)
+	{
+		skinnedmesh->m_CurrentAction = "ºá¿³";
+		RunningTime = 0;
+		m_startTime = (double)GetCurrentTimeMillis();
+	}
+	else if (GetAsyncKeyState('C') & 0x8000)
+	{
+		skinnedmesh->m_CurrentAction = "Ìø¿³";
+		RunningTime = 0;
+		m_startTime = (double)GetCurrentTimeMillis();
+	}
+	else if (GetAsyncKeyState('V') & 0x8000)
+	{
+		skinnedmesh->m_CurrentAction = "´óÁ¦¿³µØ";
+		RunningTime = 0;
+		m_startTime = (double)GetCurrentTimeMillis();
+	}
+	else if (GetAsyncKeyState('B') & 0x8000)
+	{
+		skinnedmesh->m_CurrentAction = "´óÕÐ_Ðý×ªµ¶";
+		RunningTime = 0;
+		m_startTime = (double)GetCurrentTimeMillis();
+	}
+	else if (GetAsyncKeyState('1') & 0x8000)
+	{
+		skinnedmesh->m_CurrentAction = "µØ¹ö";
+		RunningTime = 0;
+		m_startTime = (double)GetCurrentTimeMillis();
+	}
+	else if (GetAsyncKeyState('2') & 0x8000)
+	{
+		skinnedmesh->m_CurrentAction = "±»×²»÷";
+		RunningTime = 0;
+		m_startTime = (double)GetCurrentTimeMillis();
+	}
+	else if (GetAsyncKeyState('3') & 0x8000)
+	{
+		skinnedmesh->m_CurrentAction = "Á¬»÷1";
+		RunningTime = 0;
+		m_startTime = (double)GetCurrentTimeMillis();
+	}
+	else if (GetAsyncKeyState('4') & 0x8000)
+	{
+		skinnedmesh->m_CurrentAction = "²åµ¶";
+		RunningTime = 0;
+		m_startTime = (double)GetCurrentTimeMillis();
+	}
+	
 	skinnedmesh->BoneTransform(RunningTime, skinnedmesh->Transforms);
 }
-
 void CameraApp::DrawScene()
 {
 	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::Silver));
@@ -179,15 +271,12 @@ void CameraApp::DrawScene()
 
 	HR(mSwapChain->Present(0, 0));
 }
-
 void CameraApp::OnMouseDown(WPARAM btnState, int x, int y)
 {
 	mLastMousePos.x = x;
 	mLastMousePos.y = y;
-
 	SetCapture(mhMainWnd);
 }
-
 void CameraApp::OnMouseUp(WPARAM btnState, int x, int y)
 {
 	ReleaseCapture();
@@ -204,18 +293,13 @@ void CameraApp::OnMouseMove(WPARAM btnState, int x, int y)
 		mCam.Pitch(dy);
 		mCam.RotateY(dx);
 	}
-
 	mLastMousePos.x = x;
 	mLastMousePos.y = y;
 }
-
 void CameraApp::BuildShapeGeometryBuffers()
 {
-
 }
- 
 void CameraApp::BuildSkullGeometryBuffers()
-{
-	
+{	
 }
 

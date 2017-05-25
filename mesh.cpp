@@ -2,7 +2,7 @@
 #include "util.h"
 #include "StringComparison.h"
 #include "D3DCompiler.h"
-
+#include "Camera.h"
 #define POSITION_LOCATION    0
 #define TEX_COORD_LOCATION   1
 #define NORMAL_LOCATION      2
@@ -16,7 +16,6 @@ const D3D11_INPUT_ELEMENT_DESC PosTex[2] =
 	//{"NORMAL",       0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
 	{ "TEXCOORD",     0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
-
 
 Mesh::MeshTexture::MeshTexture(const std::string& FileName)
 {
@@ -50,7 +49,6 @@ bool Mesh::MeshTexture::Load(ID3D11Device* device, aiScene* pScene, aiMaterial* 
 void Mesh::MeshEntry::Init(ID3D11Device* device)
 {
 	mVertexStride = sizeof(MeshVertex);
-
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
 	vbd.ByteWidth = sizeof(MeshVertex) * m_Vertex.size();
@@ -58,12 +56,9 @@ void Mesh::MeshEntry::Init(ID3D11Device* device)
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
-
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &m_Vertex[0];// &indices[0]
-
 	HR(device->CreateBuffer(&vbd, &vinitData, &mVB));
-
 	//ReleaseCOM(mIB);
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -72,14 +67,13 @@ void Mesh::MeshEntry::Init(ID3D11Device* device)
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
-
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = &m_Indices[0];//.data();
-
 	HR(device->CreateBuffer(&ibd, &iinitData, &mIB));
 }
 Mesh::Mesh()
 {
+//	worldviewproj = XMMatrixIdentity();
 	m_pScene = NULL;
 }
 Mesh::~Mesh()
@@ -182,7 +176,7 @@ bool Mesh::LoadMesh(const std::string& Filename)
 
 bool Mesh::Update(float dt, const XMMATRIX& worldViewProj)
 {
-	worldviewproj = worldViewProj;
+//	worldviewproj = worldViewProj;
 	return false;
 }
 
@@ -279,6 +273,10 @@ bool Mesh::InitMaterials(const aiScene* pScene, const std::string& Filename)
 
 void Mesh::Render(ID3D11DeviceContext*& md3dImmediateContext)
 {
+	//XMMATRIX view = m_Camera->View();
+	//XMMATRIX proj = m_Camera->Proj();
+	XMMATRIX viewProj = m_Camera->ViewProj();
+
 	md3dImmediateContext->IASetPrimitiveTopology(primitive_type);
 	md3dImmediateContext->RSSetState(WireframeRS);
 	md3dImmediateContext->IASetInputLayout(mInputLayout_staticmesh);
@@ -300,7 +298,7 @@ void Mesh::Render(ID3D11DeviceContext*& md3dImmediateContext)
 			XMMATRIX rotation = XMMatrixRotationX(-0);
 			XMMATRIX translation = XMMatrixTranslation(-0, -0, -0);
 			world = world * rotation * translation;
-			XMMATRIX worldViewProj = world*worldviewproj;
+			XMMATRIX worldViewProj = world*viewProj;
 			m_StaticMesh_fxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 			StaticMesh_DiffuseMap = mStaticMeshFX->GetVariableByName("gDiffuseMap")->AsShaderResource();
 			ID3D11ShaderResourceView* tex = m_Textures[m_Entries[i].MaterialIndex]->mDiffuseMapSRV;
