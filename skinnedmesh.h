@@ -30,6 +30,7 @@
 #include <fstream>
 using namespace ogldev;
 
+#define INVALID_MATERIAL 0xFFFFFFFF
 class Camera;
 struct VertexBoneData
 {
@@ -62,9 +63,6 @@ struct SkinnedVertex
 {
 	Vector3f m_pos;
 	Vector2f m_tex;
-//	nv::vec3f m_pos;
-//	nv::vec2f m_tex;
-	//nv::vec3f m_normal;
 	VertexBoneData bonedata;
 	SkinnedVertex() { }
 	SkinnedVertex(const Vector3f& pos, const Vector2f& tex /*const nv::vec3f& normal*/,const VertexBoneData& boneinfo)
@@ -83,20 +81,7 @@ struct AnimationFrame
 class SkinnedMesh
 {
 public:
-	ID3D11Device* device;
-	SkinnedMesh();
-	~SkinnedMesh();
-	bool Init(ID3D11Device* d3d11device);
-	bool Update(float dt, const XMMATRIX& worldViewProj);
-	bool LoadMesh(const std::string& Filename);
-	void Render(ID3D11DeviceContext*& md3dImmediateContext);
-	unsigned int NumBones() const
-	{
-		return m_NumBones;
-	}
-	std::vector<Matrix4f> Transforms;
-	void BoneTransform(float TimeInSeconds, std::vector<Matrix4f>& Transforms);
-	bool WriteAnimInfo(const char * filename, const aiNodeAnim* animinfo);
+
 	struct BoneInfo
 	{
 		Matrix4f BoneOffset;
@@ -107,20 +92,7 @@ public:
 			FinalTransformation.SetZero();
 		}
 	};
-	void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
-	void CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
-	void CalcInterpolatedPosition(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
-	unsigned int FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
-	unsigned int FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
-	unsigned int FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
-	const aiNodeAnim* FindNodeAnim(const aiAnimation* pAnimation, const std::string NodeName);
-	void ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const Matrix4f& ParentTransform);
-	bool InitSkinnedMeshFromScene(const aiScene* pScene, const std::string& Filename);
-	void InitSkinnedMesh(unsigned int MeshIndex,const aiMesh* paiMesh);
-	void LoadBones(unsigned int MeshIndex, const aiMesh* paiMesh, std::vector<VertexBoneData>& Bones);
-	bool InitMaterials(const aiScene* pScene, const std::string& Filename);
-	void Clear();
-#define INVALID_MATERIAL 0xFFFFFFFF
+
 	enum VB_TYPES
 	{
 		INDEX_BUFFER,
@@ -130,6 +102,7 @@ public:
 		BONE_VB,
 		NUM_VBs
 	};
+
 	struct SkinnedMeshEntry
 	{
 		SkinnedMeshEntry()
@@ -147,14 +120,45 @@ public:
 		unsigned int NumIndices;
 		unsigned int MaterialIndex;
 	};
+
 	struct Texture
 	{
 		Texture() {};
-		Texture( const std::string& FileName);
+		Texture(const std::string& FileName);
 		bool Load(ID3D11Device* device, aiScene* pScene, aiMaterial* material);
 		std::string m_fileName;
 		ID3D11ShaderResourceView* mDiffuseMapSRV;
 	};
+
+	unsigned int NumBones() const
+	{
+		return m_NumBones;
+	}
+
+	SkinnedMesh();
+	~SkinnedMesh();
+	ID3D11Device* device;
+	XMFLOAT4X4 mWorldMatrix;
+	bool Init(ID3D11Device* d3d11device);
+	bool Update(float dt, const XMFLOAT4X4& world);
+	bool LoadMesh(const std::string& Filename);
+	void Render(ID3D11DeviceContext*& md3dImmediateContext);
+	std::vector<Matrix4f> Transforms;
+	void BoneTransform(float TimeInSeconds, std::vector<Matrix4f>& Transforms);
+	bool WriteAnimInfo(const char * filename, const aiNodeAnim* animinfo);
+	void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
+	void CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
+	void CalcInterpolatedPosition(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
+	unsigned int FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
+	unsigned int FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
+	unsigned int FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
+	const aiNodeAnim* FindNodeAnim(const aiAnimation* pAnimation, const std::string NodeName);
+	void ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const Matrix4f& ParentTransform);
+	bool InitSkinnedMeshFromScene(const aiScene* pScene, const std::string& Filename);
+	void InitSkinnedMesh(unsigned int MeshIndex,const aiMesh* paiMesh);
+	void LoadBones(unsigned int MeshIndex, const aiMesh* paiMesh, std::vector<VertexBoneData>& Bones);
+	bool InitMaterials(const aiScene* pScene, const std::string& Filename);
+	void Clear();
 	std::string m_CurrentAction;
 	std::vector<SkinnedMeshEntry> m_Entries;
 	std::vector<Texture*> m_Textures;
@@ -171,10 +175,11 @@ public:
 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
 	ID3DX11EffectMatrixVariable* BoneTransforms;
 	ID3D11InputLayout* mInputLayout;
-	//XMMATRIX worldviewproj;
+	static std::vector<SkinnedMesh*> renderQueue;
+	static void BatchRender(ID3D11DeviceContext*& md3dImmediateContext);
 	Camera* m_Camera;
 	const aiScene* m_pScene;
 	Assimp::Importer m_Importer;
 };
-#endif	/* OGLDEV_SKINNED_MESH_H */
+#endif	
 

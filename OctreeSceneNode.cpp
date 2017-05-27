@@ -44,6 +44,10 @@ OctreeSceneNode::~OctreeSceneNode()
 	}
 }
 
+void OctreeSceneNode::attachEntity(Entity * entity)
+{
+}
+
 void OctreeSceneNode::setOrientation(const Quaternion & q)
 {
 	if (q.isNaN())

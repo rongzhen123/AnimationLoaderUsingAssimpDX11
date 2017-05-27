@@ -37,9 +37,6 @@ struct MeshVertex
 {
 	Vector3f m_pos;
 	Vector2f m_tex;
-	//	nv::vec3f m_pos;
-	//	nv::vec2f m_tex;
-	//nv::vec3f m_normal;
 	MeshVertex() { }
 	MeshVertex(const Vector3f& pos, const Vector2f& tex /*const nv::vec3f& normal*/)
 	{
@@ -52,18 +49,6 @@ struct MeshVertex
 class Mesh
 {
 public:
-	ID3D11Device* device;
-	Mesh();
-	~Mesh();
-	bool Init(ID3D11Device* d3d11device);
-	bool LoadMesh(const std::string& Filename);
-	bool Update(float dt, const XMMATRIX& worldViewProj);
-	void Render(ID3D11DeviceContext*& md3dImmediateContext);
-	bool InitMeshFromScene(const aiScene* pScene, const std::string& Filename);
-	void InitMesh(unsigned int MeshIndex,	const aiMesh* paiMesh);
-	bool InitMaterials(const aiScene* pScene, const std::string& Filename);
-	void Clear();
-	//	void InitLocation();
 	enum VB_TYPES
 	{
 		INDEX_BUFFER,
@@ -83,7 +68,6 @@ public:
 		void Init(ID3D11Device* device);
 		ID3D11Buffer* mVB;
 		ID3D11Buffer* mIB;
-
 		DXGI_FORMAT mIndexBufferFormat; // Always 16-bit
 		UINT mVertexStride;
 		std::vector<MeshVertex> m_Vertex;
@@ -96,15 +80,22 @@ public:
 		MeshTexture() {};
 		MeshTexture(const std::string& FileName);
 		bool Load(ID3D11Device* device, aiScene* pScene, aiMaterial* material);
-
 		std::string m_fileName;
-		//ID3D11Texture2D *pTexture = NULL;
 		ID3D11ShaderResourceView* mDiffuseMapSRV;
-
 	};
+	ID3D11Device* device;
+	Mesh();
+	~Mesh();
+	bool Init(ID3D11Device* d3d11device);
+	bool LoadMesh(const std::string& Filename);
+	bool Update(float dt, const XMMATRIX& worldViewProj);
+	void Render(ID3D11DeviceContext*& md3dImmediateContext);
+	bool InitMeshFromScene(const aiScene* pScene, const std::string& Filename);
+	void InitMesh(unsigned int MeshIndex,	const aiMesh* paiMesh);
+	bool InitMaterials(const aiScene* pScene, const std::string& Filename);
+	void Clear();
 	std::vector<MeshEntry> m_Entries;
 	std::vector<MeshTexture*> m_Textures;
-
 	D3D_PRIMITIVE_TOPOLOGY primitive_type;
 	ID3D11RasterizerState* WireframeRS;
 	ID3DX11Effect* mStaticMeshFX;
@@ -112,13 +103,10 @@ public:
 	ID3DX11EffectMatrixVariable* m_StaticMesh_fxWorldViewProj;
 	ID3DX11EffectShaderResourceVariable* StaticMesh_DiffuseMap;
 	ID3D11InputLayout* mInputLayout_staticmesh;
-	
-	//XMMATRIX worldviewproj;
+	XMFLOAT4X4 mWorldMatrix;
 	Camera* m_Camera;
 	const aiScene* m_pScene;
 	Assimp::Importer m_Importer;
 };
-
-
-#endif	/* OGLDEV_SKINNED_MESH_H */
+#endif	
 

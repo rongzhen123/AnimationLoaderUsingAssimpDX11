@@ -111,6 +111,12 @@
 #if __cplusplus >= 201103L
 #define register
 #endif
+
+	enum EntityType
+	{
+		Static_Entity = 0,
+		Animate_Entity
+	};
 	// Pre-declare classes
 	// Allows use of pointers in header files without including individual .h
 	// so decreases dependencies between files
@@ -200,7 +206,7 @@
 	class MeshManager;
 	class MovableObject;
 	class MovablePlane;
-	class Node;
+	class OctreeSceneNode;
 	class NodeAnimationTrack;
 	class NodeKeyFrame;
 	class NumericAnimationTrack;

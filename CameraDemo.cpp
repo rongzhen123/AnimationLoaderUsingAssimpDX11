@@ -168,10 +168,10 @@ bool CameraApp::Init()
 	skinnedmesh->m_CurrentAction = "stand";
 	skinnedmesh->m_Camera = &mCam;
 
-	background_mesh = new Mesh();
+	/*background_mesh = new Mesh();
 	background_mesh->Init(md3dDevice);
 	background_mesh->m_Camera = &mCam;
-	background_mesh->LoadMesh("assert\\mesh\\1V1.DAE");
+	background_mesh->LoadMesh("assert\\mesh\\1V1.DAE");*/
 	return true;
 }
 void CameraApp::OnResize()
@@ -191,10 +191,12 @@ void CameraApp::UpdateScene(float dt)
 	if( GetAsyncKeyState('D') & 0x8000 )
 		mCam.Strafe(10.0f*dt);
 
-
-	
 	mCam.UpdateViewMatrix();
 	float RunningTime = GetRunningTime();
+	XMMATRIX world = XMMatrixIdentity();
+	XMFLOAT4X4 worldpos;
+	XMStoreFloat4x4(&worldpos, world);
+	skinnedmesh->Update(dt, worldpos);
 	if (GetAsyncKeyState('M') & 0x8000)
 	{
 		skinnedmesh->m_CurrentAction = "run";
@@ -266,7 +268,7 @@ void CameraApp::DrawScene()
 	//md3dImmediateContext->RSSetState(RenderStates::WireframeRS);
 	//md3dImmediateContext->OMSetDepthStencilState(RenderStates::MarkMirrorDSS, 1);
 	//md3dImmediateContext->OMSetDepthStencilState(0, 0);
-	background_mesh->Render(md3dImmediateContext);
+	//background_mesh->Render(md3dImmediateContext);
 	skinnedmesh->Render(md3dImmediateContext);
 
 	HR(mSwapChain->Present(0, 0));

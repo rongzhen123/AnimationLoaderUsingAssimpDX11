@@ -163,12 +163,12 @@ bool SkinnedMesh::Init(ID3D11Device* d3d11device)
 	return true;
 }
 
-bool SkinnedMesh::Update(float dt, const XMMATRIX& worldViewProj)
+bool SkinnedMesh::Update(float dt, const XMFLOAT4X4& world)
 {
-	//worldviewproj = worldViewProj;
+	mWorldMatrix = world;
 	return false;
 }
-
+std::vector<SkinnedMesh*>  SkinnedMesh::renderQueue;
 void SkinnedMesh::Clear()
 {
 	for (int i = 0; i < m_Textures.size(); i++)
@@ -487,13 +487,16 @@ bool SkinnedMesh::InitMaterials(const aiScene* pScene, const std::string& Filena
 	}
 	return Ret;
 }
+ void SkinnedMesh::BatchRender(ID3D11DeviceContext*& md3dImmediateContext)
+{
+	for (int i = 0; i < renderQueue.size(); i++)
+	{
+
+	}
+}
 void SkinnedMesh::Render(ID3D11DeviceContext*& md3dImmediateContext)
 {
-	//XMMATRIX view = m_Camera->View();
-	//XMMATRIX proj = m_Camera->Proj();
 	XMMATRIX viewProj = m_Camera->ViewProj();
-	//XMMATRIX world = XMMatrixIdentity();
-	//XMMATRIX worldViewProj = world*view*proj;
 
 	md3dImmediateContext->IASetPrimitiveTopology(primitive_type);
 	//md3dImmediateContext->RSSetState(WireframeRS);
