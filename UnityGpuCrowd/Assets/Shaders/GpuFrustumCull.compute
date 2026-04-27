@@ -1,0 +1,45 @@
+#pragma kernel CSMain
+
+struct InstanceData
+{
+    float4x4 objectToWorld;
+    uint clipIndex;
+    float normalizedTime;
+    float playbackSpeed;
+    float blend;
+    uint nextClip;
+    float3 pad;
+};
+
+StructuredBuffer<InstanceData> _InstanceBuffer;
+RWStructuredBuffer<uint> _VisibleIndexBuffer;
+RWStructuredBuffer<uint> _ArgsBuffer; // indirect args, index count, instance count, ...
+
+int _InstanceCount;
+float4x4 _ViewProj;
+float3 _CameraPosition;
+float _MaxDistance;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x;
+    if (index >= _InstanceCount) return;
+
+    InstanceData d = _InstanceBuffer[index];
+    float3 ws = d.objectToWorld[3].xyz;
+
+    float dist = distance(ws, _CameraPosition);
+    if (dist > _MaxDistance) return;
+
+    float4 clip = mul(_ViewProj, float4(ws, 1.0));
+    if (clip.w <= 0.001) return;
+
+    float3 ndc = clip.xyz / clip.w;
+    if (ndc.x < -1.1 || ndc.x > 1.1 || ndc.y < -1.1 || ndc.y > 1.1 || ndc.z < -0.1 || ndc.z > 1.1)
+        return;
+
+    uint dst;
+    InterlockedAdd(_ArgsBuffer[1], 1, dst);
+    _VisibleIndexBuffer[dst] = index;
+}
