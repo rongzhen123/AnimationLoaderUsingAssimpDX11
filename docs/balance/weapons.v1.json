@@ -1,0 +1,91 @@
+{
+  "version": "2026.04.28",
+  "notes": "Production baseline for 30 FPS/60 FPS deterministic fixed-step shooter.",
+  "damage_types": ["physical", "fire", "electric", "acid"],
+  "weapons": [
+    {
+      "weapon_id": "ar_mk1",
+      "display_name": "Ranger AR-Mk1",
+      "role": "all-round primary",
+      "base": {
+        "damage": 22.0,
+        "fire_rate_rps": 8.5,
+        "magazine_size": 30,
+        "reload_seconds": 1.95,
+        "crit_chance": 0.08,
+        "crit_multiplier": 1.55,
+        "armor_pen_flat": 4.0,
+        "projectile_speed": 310.0,
+        "spread_deg": 1.85
+      },
+      "level_curve": [
+        {"level": 1, "damage_mult": 1.00, "fire_rate_mult": 1.00, "reload_mult": 1.00, "spread_mult": 1.00, "upgrade_cost": 120},
+        {"level": 2, "damage_mult": 1.10, "fire_rate_mult": 1.03, "reload_mult": 0.98, "spread_mult": 0.97, "upgrade_cost": 220},
+        {"level": 3, "damage_mult": 1.21, "fire_rate_mult": 1.06, "reload_mult": 0.96, "spread_mult": 0.95, "upgrade_cost": 360},
+        {"level": 4, "damage_mult": 1.32, "fire_rate_mult": 1.09, "reload_mult": 0.94, "spread_mult": 0.93, "upgrade_cost": 540},
+        {"level": 5, "damage_mult": 1.43, "fire_rate_mult": 1.12, "reload_mult": 0.92, "spread_mult": 0.91, "upgrade_cost": 760},
+        {"level": 6, "damage_mult": 1.54, "fire_rate_mult": 1.14, "reload_mult": 0.90, "spread_mult": 0.89, "upgrade_cost": 1020},
+        {"level": 7, "damage_mult": 1.63, "fire_rate_mult": 1.16, "reload_mult": 0.89, "spread_mult": 0.88, "upgrade_cost": 1320},
+        {"level": 8, "damage_mult": 1.71, "fire_rate_mult": 1.18, "reload_mult": 0.88, "spread_mult": 0.87, "upgrade_cost": 1660},
+        {"level": 9, "damage_mult": 1.79, "fire_rate_mult": 1.20, "reload_mult": 0.87, "spread_mult": 0.86, "upgrade_cost": 2050},
+        {"level": 10, "damage_mult": 1.86, "fire_rate_mult": 1.22, "reload_mult": 0.86, "spread_mult": 0.85, "upgrade_cost": 0}
+      ]
+    },
+    {
+      "weapon_id": "smg_v9",
+      "display_name": "Tempest SMG-V9",
+      "role": "close-range burst mobility",
+      "base": {
+        "damage": 13.0,
+        "fire_rate_rps": 14.0,
+        "magazine_size": 42,
+        "reload_seconds": 1.70,
+        "crit_chance": 0.06,
+        "crit_multiplier": 1.45,
+        "armor_pen_flat": 2.0,
+        "projectile_speed": 270.0,
+        "spread_deg": 2.60
+      },
+      "level_curve": [
+        {"level": 1, "damage_mult": 1.00, "fire_rate_mult": 1.00, "reload_mult": 1.00, "spread_mult": 1.00, "upgrade_cost": 100},
+        {"level": 2, "damage_mult": 1.08, "fire_rate_mult": 1.04, "reload_mult": 0.98, "spread_mult": 0.97, "upgrade_cost": 200},
+        {"level": 3, "damage_mult": 1.16, "fire_rate_mult": 1.08, "reload_mult": 0.96, "spread_mult": 0.95, "upgrade_cost": 330},
+        {"level": 4, "damage_mult": 1.24, "fire_rate_mult": 1.12, "reload_mult": 0.94, "spread_mult": 0.93, "upgrade_cost": 500},
+        {"level": 5, "damage_mult": 1.32, "fire_rate_mult": 1.16, "reload_mult": 0.92, "spread_mult": 0.91, "upgrade_cost": 710},
+        {"level": 6, "damage_mult": 1.39, "fire_rate_mult": 1.19, "reload_mult": 0.90, "spread_mult": 0.90, "upgrade_cost": 960},
+        {"level": 7, "damage_mult": 1.46, "fire_rate_mult": 1.22, "reload_mult": 0.89, "spread_mult": 0.89, "upgrade_cost": 1250},
+        {"level": 8, "damage_mult": 1.52, "fire_rate_mult": 1.24, "reload_mult": 0.88, "spread_mult": 0.88, "upgrade_cost": 1580},
+        {"level": 9, "damage_mult": 1.58, "fire_rate_mult": 1.26, "reload_mult": 0.87, "spread_mult": 0.87, "upgrade_cost": 1950},
+        {"level": 10, "damage_mult": 1.64, "fire_rate_mult": 1.28, "reload_mult": 0.86, "spread_mult": 0.86, "upgrade_cost": 0}
+      ]
+    },
+    {
+      "weapon_id": "dmr_k2",
+      "display_name": "Atlas DMR-K2",
+      "role": "precision anti-elite",
+      "base": {
+        "damage": 68.0,
+        "fire_rate_rps": 2.9,
+        "magazine_size": 14,
+        "reload_seconds": 2.20,
+        "crit_chance": 0.14,
+        "crit_multiplier": 1.70,
+        "armor_pen_flat": 10.0,
+        "projectile_speed": 420.0,
+        "spread_deg": 0.55
+      },
+      "level_curve": [
+        {"level": 1, "damage_mult": 1.00, "fire_rate_mult": 1.00, "reload_mult": 1.00, "spread_mult": 1.00, "upgrade_cost": 140},
+        {"level": 2, "damage_mult": 1.11, "fire_rate_mult": 1.02, "reload_mult": 0.98, "spread_mult": 0.98, "upgrade_cost": 250},
+        {"level": 3, "damage_mult": 1.22, "fire_rate_mult": 1.04, "reload_mult": 0.96, "spread_mult": 0.96, "upgrade_cost": 410},
+        {"level": 4, "damage_mult": 1.33, "fire_rate_mult": 1.06, "reload_mult": 0.94, "spread_mult": 0.94, "upgrade_cost": 620},
+        {"level": 5, "damage_mult": 1.44, "fire_rate_mult": 1.08, "reload_mult": 0.92, "spread_mult": 0.92, "upgrade_cost": 880},
+        {"level": 6, "damage_mult": 1.53, "fire_rate_mult": 1.10, "reload_mult": 0.90, "spread_mult": 0.91, "upgrade_cost": 1180},
+        {"level": 7, "damage_mult": 1.62, "fire_rate_mult": 1.11, "reload_mult": 0.89, "spread_mult": 0.90, "upgrade_cost": 1520},
+        {"level": 8, "damage_mult": 1.70, "fire_rate_mult": 1.12, "reload_mult": 0.88, "spread_mult": 0.89, "upgrade_cost": 1900},
+        {"level": 9, "damage_mult": 1.78, "fire_rate_mult": 1.13, "reload_mult": 0.87, "spread_mult": 0.88, "upgrade_cost": 2330},
+        {"level": 10, "damage_mult": 1.85, "fire_rate_mult": 1.14, "reload_mult": 0.86, "spread_mult": 0.87, "upgrade_cost": 0}
+      ]
+    }
+  ]
+}
