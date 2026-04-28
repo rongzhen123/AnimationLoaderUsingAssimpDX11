@@ -1,0 +1,57 @@
+{
+  "version": "2026.04.28",
+  "score_pickup": {
+    "magnet_radius_m": 4.8,
+    "auto_collect_radius_m": 1.4,
+    "lifetime_s": 22.0,
+    "wave_end_auto_collect": true
+  },
+  "weapon_upgrade": {
+    "max_level": 10,
+    "score_cost_formula": "round(base_cost * pow(level, 1.35))",
+    "recommended_upgrade_interval_seconds": [70, 110],
+    "anti_snowball": {
+      "max_level_jump_per_20s": 2,
+      "cost_inflation_when_overperforming": 0.08
+    }
+  },
+  "player_survivability_targets": {
+    "avg_time_to_death_under_focus_fire_s": [6.5, 9.5],
+    "medkit_drop_chance_on_low_hp_streak": 0.15,
+    "low_hp_threshold": 0.28,
+    "streak_window_s": 45
+  },
+  "meta_run": {
+    "score_to_meta_currency_ratio": 0.075,
+    "first_clear_wave_bonus": {
+      "wave_5": 40,
+      "wave_10": 75,
+      "wave_15": 130,
+      "wave_20": 220
+    },
+    "adaptive_baseline_difficulty": {
+      "enabled": true,
+      "per_run_adjustment_pct": 0.05,
+      "min_adjustment_pct": -0.12,
+      "max_adjustment_pct": 0.15,
+      "overperform_gate": {
+        "min_wave": 10,
+        "remaining_lives": 2,
+        "time_above_target_ttk_pct": 0.20
+      },
+      "underperform_gate": {
+        "fails_before_wave": 5,
+        "consecutive_runs": 2
+      }
+    }
+  },
+  "kpi_targets": {
+    "p50_wave_reached_new_players": 7,
+    "p50_wave_reached_returning_players": 11,
+    "p90_wave_reached_high_skill": 18,
+    "p50_ttk_runner_s_wave1": 0.75,
+    "p50_ttk_runner_s_wave10": 1.15,
+    "p50_ttk_elite_s_wave10": 2.8,
+    "session_length_minutes_target": [18, 28]
+  }
+}

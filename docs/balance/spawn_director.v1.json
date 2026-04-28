@@ -1,0 +1,57 @@
+{
+  "version": "2026.04.28",
+  "wave_budget": {
+    "base": 18.0,
+    "growth_linear": 3.8,
+    "growth_curve": 1.06,
+    "max_active_enemies": 55,
+    "max_elite_active": 6
+  },
+  "spawn_timing": {
+    "base_interval_s": 1.4,
+    "min_interval_s": 0.35,
+    "batch_size_min": 1,
+    "batch_size_max": 4,
+    "safe_spawn_radius_m": 14.0,
+    "safe_spawn_los_block_required": true,
+    "safe_time_after_damage_s": 2.2
+  },
+  "intensity_director": {
+    "target_band": [0.42, 0.68],
+    "inputs": {
+      "active_enemy_weight": 0.32,
+      "incoming_dps_weight": 0.38,
+      "player_hp_trend_weight": 0.20,
+      "recent_near_miss_weight": 0.10
+    },
+    "response": {
+      "high_intensity": {
+        "elite_spawn_weight_mult": 0.72,
+        "spawn_interval_mult": 1.30,
+        "flank_spawn_chance_delta": -0.12
+      },
+      "low_intensity": {
+        "elite_spawn_weight_mult": 1.08,
+        "spawn_interval_mult": 0.84,
+        "flank_spawn_chance_delta": 0.10
+      }
+    }
+  },
+  "wave_templates": [
+    {"wave": 1, "allowed_tiers": [1], "elite_chance": 0.00, "flank_spawn_chance": 0.08},
+    {"wave": 2, "allowed_tiers": [1], "elite_chance": 0.00, "flank_spawn_chance": 0.10},
+    {"wave": 3, "allowed_tiers": [1, 2], "elite_chance": 0.08, "flank_spawn_chance": 0.12},
+    {"wave": 4, "allowed_tiers": [1, 2], "elite_chance": 0.10, "flank_spawn_chance": 0.13},
+    {"wave": 5, "allowed_tiers": [1, 2], "elite_chance": 0.13, "flank_spawn_chance": 0.15},
+    {"wave": 6, "allowed_tiers": [1, 2], "elite_chance": 0.15, "flank_spawn_chance": 0.16},
+    {"wave": 7, "allowed_tiers": [1, 2], "elite_chance": 0.17, "flank_spawn_chance": 0.17},
+    {"wave": 8, "allowed_tiers": [1, 2], "elite_chance": 0.18, "flank_spawn_chance": 0.18},
+    {"wave": 9, "allowed_tiers": [1, 2], "elite_chance": 0.20, "flank_spawn_chance": 0.19},
+    {"wave": 10, "allowed_tiers": [1, 2, 3], "elite_chance": 0.20, "flank_spawn_chance": 0.20},
+    {"wave": 11, "allowed_tiers": [1, 2], "elite_chance": 0.22, "flank_spawn_chance": 0.21},
+    {"wave": 12, "allowed_tiers": [1, 2], "elite_chance": 0.24, "flank_spawn_chance": 0.22},
+    {"wave": 13, "allowed_tiers": [1, 2], "elite_chance": 0.25, "flank_spawn_chance": 0.23},
+    {"wave": 14, "allowed_tiers": [1, 2], "elite_chance": 0.27, "flank_spawn_chance": 0.24},
+    {"wave": 15, "allowed_tiers": [1, 2, 3], "elite_chance": 0.27, "flank_spawn_chance": 0.25}
+  ]
+}

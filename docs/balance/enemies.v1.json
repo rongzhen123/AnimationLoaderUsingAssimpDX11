@@ -1,0 +1,124 @@
+{
+  "version": "2026.04.28",
+  "scalars": {
+    "hp_growth_per_wave": 0.072,
+    "damage_growth_per_wave": 0.048,
+    "score_growth_per_wave": 0.030,
+    "armor_growth_per_5_waves": 2.0,
+    "speed_growth_per_10_waves": 0.04
+  },
+  "archetypes": [
+    {
+      "enemy_id": "runner",
+      "tier": 1,
+      "spawn_weight": 34,
+      "wave_unlock": 1,
+      "base": {
+        "hp": 92,
+        "move_speed": 4.6,
+        "contact_damage": 13,
+        "attack_interval_s": 1.15,
+        "armor": 4,
+        "dodge_chance": 0.00,
+        "resistance": {"physical": 1.00, "fire": 1.05, "electric": 1.00, "acid": 0.95},
+        "score_drop_base": 18,
+        "score_drop_variance": 0.10,
+        "enemy_budget_cost": 1.0
+      }
+    },
+    {
+      "enemy_id": "rifleman",
+      "tier": 1,
+      "spawn_weight": 28,
+      "wave_unlock": 1,
+      "base": {
+        "hp": 108,
+        "move_speed": 3.3,
+        "ranged_damage": 10,
+        "attack_interval_s": 0.72,
+        "projectile_speed": 190,
+        "armor": 7,
+        "dodge_chance": 0.00,
+        "resistance": {"physical": 1.00, "fire": 1.00, "electric": 1.08, "acid": 0.92},
+        "score_drop_base": 22,
+        "score_drop_variance": 0.10,
+        "enemy_budget_cost": 1.2
+      }
+    },
+    {
+      "enemy_id": "bulwark",
+      "tier": 2,
+      "spawn_weight": 12,
+      "wave_unlock": 3,
+      "base": {
+        "hp": 360,
+        "move_speed": 2.4,
+        "contact_damage": 24,
+        "attack_interval_s": 1.45,
+        "armor": 24,
+        "dodge_chance": 0.03,
+        "resistance": {"physical": 0.88, "fire": 1.12, "electric": 0.95, "acid": 1.00},
+        "score_drop_base": 72,
+        "score_drop_variance": 0.12,
+        "enemy_budget_cost": 3.8
+      }
+    },
+    {
+      "enemy_id": "striker",
+      "tier": 2,
+      "spawn_weight": 10,
+      "wave_unlock": 5,
+      "base": {
+        "hp": 300,
+        "move_speed": 3.9,
+        "dash_damage": 34,
+        "attack_interval_s": 2.10,
+        "armor": 14,
+        "dodge_chance": 0.08,
+        "resistance": {"physical": 1.00, "fire": 0.90, "electric": 1.05, "acid": 1.08},
+        "score_drop_base": 80,
+        "score_drop_variance": 0.12,
+        "enemy_budget_cost": 4.0
+      }
+    },
+    {
+      "enemy_id": "overseer",
+      "tier": 2,
+      "spawn_weight": 8,
+      "wave_unlock": 7,
+      "base": {
+        "hp": 270,
+        "move_speed": 2.8,
+        "summon_cooldown_s": 9.0,
+        "summon_count": 2,
+        "armor": 10,
+        "dodge_chance": 0.05,
+        "resistance": {"physical": 0.95, "fire": 1.10, "electric": 0.90, "acid": 1.00},
+        "score_drop_base": 95,
+        "score_drop_variance": 0.14,
+        "enemy_budget_cost": 4.2
+      }
+    },
+    {
+      "enemy_id": "boss_goliath",
+      "tier": 3,
+      "spawn_weight": 1,
+      "wave_unlock": 10,
+      "boss_spawn_every_waves": 5,
+      "base": {
+        "hp": 4200,
+        "move_speed": 2.1,
+        "slam_damage": 48,
+        "projectile_damage": 22,
+        "projectile_burst": 5,
+        "armor": 36,
+        "dodge_chance": 0.00,
+        "resistance": {"physical": 0.92, "fire": 0.92, "electric": 1.05, "acid": 1.10},
+        "score_drop_base": 1200,
+        "score_drop_variance": 0.08,
+        "enemy_budget_cost": 24.0,
+        "guaranteed_shard_drop": 1
+      }
+    }
+  ]
+}
